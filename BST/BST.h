@@ -14,7 +14,7 @@ public:
 		root = NULL;
 	}
 
-	void AddElement(Node **node, int val)
+	int AddElement(Node **node, int val, int CurrDepth)
 	{
 		using namespace std;
 
@@ -22,14 +22,24 @@ public:
 		{
 			cout<<"Adding Element :"<<val<<endl;
 			*node = new Node(val);
+			(*node)->depth = CurrDepth;
+			(*node)->height = 0;
 		}
 		else
 		{
+			int ChildHeight = 0;
+
 			if(val < (*node)->value)
-				AddElement(&((*node)->left), val);
+				ChildHeight = AddElement(&((*node)->left), val, CurrDepth+1);
 			else
-				AddElement(&((*node)->right), val);
+				ChildHeight = AddElement(&((*node)->right), val, CurrDepth+1);
+
+			if(ChildHeight + 1 > (*node)->height)
+				(*node)->height = ChildHeight + 1;
 		}
+
+		return (*node)->height;
+
 	}
 	void InOrderTraversal(Node *node)
 	{
@@ -39,7 +49,8 @@ public:
 
 		InOrderTraversal(node->left);
 
-		cout<<node->value<< " ";
+		cout<<node->value<< " "<<","<<node->depth<<" , "<<node->height<<" | ";
+
 
 		InOrderTraversal(node->right);
 	}

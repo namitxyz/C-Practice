@@ -5,13 +5,13 @@ int main()
 {
 	using namespace std;
 	Bst bst;
-	bst.AddElement(&bst.root, 50);
-	bst.AddElement(&bst.root, 25);
-	bst.AddElement(&bst.root, 47);
-	bst.AddElement(&bst.root, 60);
-	bst.AddElement(&bst.root, 42);
-	bst.AddElement(&bst.root, 100);
-	bst.AddElement(&bst.root, 55);
+	bst.AddElement(&bst.root, 50,0);
+	bst.AddElement(&bst.root, 25,0);
+	bst.AddElement(&bst.root, 47,0);
+	bst.AddElement(&bst.root, 60,0);
+	bst.AddElement(&bst.root, 42,0);
+	bst.AddElement(&bst.root, 100,0);
+	bst.AddElement(&bst.root, 55,0);
 
 	cout<<"InOrderTraversal"<<endl;
 	bst.InOrderTraversal(bst.root);
