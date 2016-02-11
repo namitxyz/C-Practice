@@ -6,64 +6,86 @@
 #include <mutex>
 
 using namespace std;
-mutex mtx;
 
-class PrinterQueue{
-	queue<string> m_PrintQueue;
+template <class T> class PrinterQueue{
+	queue<T> m_PrintQueue;
+	mutex         m_mtx;
+
+	PrinterQueue() {};
+	PrinterQueue(PrinterQueue const &);
+	void operator=(PrinterQueue const &);
+
 public:
-	void AddToQueue(string data)
+
+	static PrinterQueue & getInstance()
 	{
-		mtx.lock();
+		static PrinterQueue instance;
+		return instance;
+	}
+
+	void AddToQueue(T data)
+	{
+		m_mtx.lock();
 
 		m_PrintQueue.push(data);	
 
-		mtx.unlock();
+		m_mtx.unlock();
 	}
 
-	string GetDataFromQueue(int iConsumerNumber)
+	T GetDataFromQueue(int iConsumerNumber)
 	{	
- 	    mtx.lock();	
+ 	    m_mtx.lock();
+ 	    T data;	
 		if(!m_PrintQueue.empty())
-		{
-			string data;
+		{		
 			data = m_PrintQueue.front();
 			m_PrintQueue.pop();
-			cout<<"Consumer Number :"<<iConsumerNumber<<"Data :"<<data<<endl;
+			PerformNonThreadSafeOperations(iConsumerNumber, data);			
 		}
-		mtx.unlock();
+		m_mtx.unlock();
 
-		return "";
+		return data;
+	}
+
+	void PerformNonThreadSafeOperations(int iConsumerNumber, T data)
+	{
+		cout<<"Consumer Number :"<<iConsumerNumber<<", Data :"<<data<<endl; //cout is not thread safe.
+	}
+
+	void PerformThreadSafeOperations(T data)
+	{
+
 	}
 };
 
-PrinterQueue DataQueue;
-
-void AddData(int n) 
+template <typename T> void AddData(int n) 
 {
 	for(int i = 0; i< n; i++)
 	{
 		stringstream ss;
 		ss<<i;
-		DataQueue.AddToQueue(ss.str());
-
+		T data = ss.str();
+		PrinterQueue<string>::getInstance().AddToQueue(data);
 	}
 		
 }
 
-void ConsumeData(int iConsumerNumber)
+template <typename T> void ConsumeData(int iConsumerNumber)
 {
 	while(1)
 	{
-		DataQueue.GetDataFromQueue(iConsumerNumber);
+		T data = PrinterQueue<string>::getInstance().GetDataFromQueue(iConsumerNumber);
+		
+		PrinterQueue<string>::getInstance().PerformThreadSafeOperations(data);
 	}
 }
 
 int main() 
 {
-  std::thread Producer_1 (AddData, 100);   
-  std::thread Producer_2 (AddData, 120);       
-  std::thread Consumer_1 (ConsumeData, 1);  
-  std::thread Consumer_2 (ConsumeData, 2);  
+  std::thread Producer_1 (AddData<string>, 100);   
+  std::thread Producer_2 (AddData<string>, 120);       
+  std::thread Consumer_1 (ConsumeData<string>, 1);  
+  std::thread Consumer_2 (ConsumeData<string>, 2);  
 
   // synchronize threads:
   Producer_1.join();                // pauses until first finishes 
