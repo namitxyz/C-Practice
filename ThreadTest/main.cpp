@@ -83,11 +83,8 @@ int main()
 		Consumers.push_back(thread(&PrinterQueue<string>::ConsumeData, &PrinterQueue<string>::getInstance(), i));
 
 	for (int i =0; i < NO_PRODUCERS; i++)
-	{
-		string data = GetSeedData();
-		Producers.push_back(thread(&PrinterQueue<string>::ProduceData, &PrinterQueue<string>::getInstance(), data));
-	}
-
+		Producers.push_back(thread(&PrinterQueue<string>::ProduceData, &PrinterQueue<string>::getInstance(), GetSeedData()));
+	
 	for(int i = 0; i < NO_CONSUMERS; i++)
 		Consumers[i].join();
 
