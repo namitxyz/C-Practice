@@ -1,4 +1,6 @@
-// Multiple producers and Multiple consumers. Used for logging.
+// Multiple producers and Multiple consumers. Used for logging. 
+//Execution command: "clang++ -std=c++11 -stdlib=libc++  *.cpp"
+
 #include <iostream>
 #include <thread>
 #include <queue>
