@@ -9,8 +9,8 @@ using namespace std;
 
 const int NumberOfVertices = 5;
 
-vector<int> PerformBFS(int StartingVertex, map<int, vector<int> > &AdjacencyList);
-vector<int> PerformDFS(int StartingVertex, map<int, vector<int> > &AdjacencyList);
+set<int> PerformBFS(int StartingVertex, map<int, vector<int> > &AdjacencyList);
+set<int> PerformDFS(int StartingVertex, map<int, vector<int> > &AdjacencyList);
 
 int main()
 {
@@ -26,8 +26,8 @@ int main()
 
 	}
 
-	AdjacencyMatrix[1][2] = 1;
-	AdjacencyMatrix[2][1] = 1;
+	//AdjacencyMatrix[1][2] = 1;
+	//AdjacencyMatrix[2][1] = 1;
 
 	map<int, vector<int> > AdjacencyList;
 
@@ -46,27 +46,32 @@ int main()
 
 	}
 
+	set<set<int> > AllSets;
 	for(map<int, vector<int> >::iterator it = AdjacencyList.begin(); it != AdjacencyList.end(); ++it)
 	{
-		vector<int> Path_BFS = PerformBFS(it->first, AdjacencyList);
+		set<int> Path_BFS = PerformBFS(it->first, AdjacencyList);
 
-		vector<int> Path_DFS = PerformDFS(it->first, AdjacencyList);
+		set<int> Path_DFS = PerformDFS(it->first, AdjacencyList);
 
-		cout<<endl<<"BFS path for starting at vertex :"<<it->first<<endl;
+		AllSets.insert(Path_BFS);
+
+		cout<<"Unique number of groups :"<<AllSets.size()<<endl;
+
+		/*cout<<endl<<"BFS path for starting at vertex :"<<it->first<<endl;
 		for(int i =0; i< Path_BFS.size(); i++)
 			cout<<Path_BFS[i]<<" , ";
 
 		cout<<endl<<"DFS path for starting at vertex :"<<it->first<<endl;
 		for(int i =0; i<Path_DFS.size(); i++)
-			cout<<Path_DFS[i]<<" ,";
+			cout<<Path_DFS[i]<<" ,";*/
 	}
 }
 
-vector<int> PerformBFS(int StartingVertex, map<int, vector<int> > &AdjacencyList)
+set<int> PerformBFS(int StartingVertex, map<int, vector<int> > &AdjacencyList)
 {
 	queue<int>  BFSQueue;
 	set<int>    VisitedVertices;
-	vector<int> Path;
+	set<int>    Path;
 
 	BFSQueue.push(StartingVertex);
 	VisitedVertices.insert(StartingVertex);
@@ -75,7 +80,7 @@ vector<int> PerformBFS(int StartingVertex, map<int, vector<int> > &AdjacencyList
 	{
 		int current = BFSQueue.front();
 		BFSQueue.pop();
-		Path.push_back(current);
+		Path.insert(current);
 		vector<int> neighbors = AdjacencyList[current];
 
 		for(int i =0; i < neighbors.size(); i++)
@@ -92,12 +97,12 @@ vector<int> PerformBFS(int StartingVertex, map<int, vector<int> > &AdjacencyList
 	return Path;
 }
 
-vector<int> PerformDFS(int StartingVertex, map<int, vector<int> > &AdjacencyList)
+set<int> PerformDFS(int StartingVertex, map<int, vector<int> > &AdjacencyList)
 {
 
 	stack<int> DFSStack;
 	set<int> VisitedVertices;
-	vector<int> Path;
+	set<int> Path;
 
 	DFSStack.push(StartingVertex);
 	VisitedVertices.insert(StartingVertex);
@@ -107,7 +112,7 @@ vector<int> PerformDFS(int StartingVertex, map<int, vector<int> > &AdjacencyList
 		int current = DFSStack.top();
 		DFSStack.pop();
 
-		Path.push_back(current);
+		Path.insert(current);
 
 		vector<int> neighbors = AdjacencyList[current];
 
