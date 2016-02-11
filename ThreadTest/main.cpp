@@ -65,6 +65,45 @@ public:
 	}
 };
 
+class ProducersConsumers{
+	vector<thread> Consumers;
+	vector<thread> Producers;
+	const int MAX_NO_CONSUMERS = 10;
+	const int MAX_NO_PRODUCERS = 100;
+
+public:
+	vector<thread> & GetConsumers()
+	{
+		return Consumers;
+	}
+
+	vector<thread> & GetProducers()
+	{
+		return Producers;
+	}
+
+	int GetMaxNumberOfComsumers()
+	{
+		return MAX_NO_CONSUMERS;
+	}
+
+	int GetMaxNumberOfProducers()
+	{
+		return MAX_NO_PRODUCERS;
+	}
+
+	~ProducersConsumers()
+	{
+		for(int i = 0; i < Consumers.size(); i++)
+			if(Consumers[i].joinable())
+				Consumers[i].join();
+
+		for(int i = 0; i < Producers.size(); i++)
+			if(Producers[i].joinable())
+				Producers[i].join();
+	}
+};
+
 string GetSeedData()
 {
 	stringstream ss;
@@ -75,23 +114,13 @@ string GetSeedData()
 
 int main() 
 {
-	const int NO_CONSUMERS = 10;
-	const int NO_PRODUCERS = 100;
+	ProducersConsumers PC;
 
-	vector<thread> Consumers;
-	vector<thread> Producers;
+	for(int i = 0; i< PC.GetMaxNumberOfComsumers(); i++)
+		PC.GetConsumers().push_back(thread(&PrinterQueue<string>::ConsumeData, &PrinterQueue<string>::getInstance(), i));
 
-	for(int i = 0; i< NO_CONSUMERS; i++)
-		Consumers.push_back(thread(&PrinterQueue<string>::ConsumeData, &PrinterQueue<string>::getInstance(), i));
-
-	for (int i =0; i < NO_PRODUCERS; i++)
-		Producers.push_back(thread(&PrinterQueue<string>::ProduceData, &PrinterQueue<string>::getInstance(), GetSeedData()));
+	for (int i =0; i < PC.GetMaxNumberOfProducers(); i++)
+		PC.GetProducers().push_back(thread(&PrinterQueue<string>::ProduceData, &PrinterQueue<string>::getInstance(), GetSeedData()));
 	
-	for(int i = 0; i < NO_CONSUMERS; i++)
-		Consumers[i].join();
-
-	for(int i = 0; i < NO_PRODUCERS; i++)
-		Producers[i].join();
-
 	return 0;
 }
