@@ -1,4 +1,4 @@
-// Multiple producers and single consumer. Used for logging.
+// Multiple producers and Multiple consumers. Used for logging.
 #include <iostream>
 #include <thread>
 #include <queue>
@@ -21,18 +21,16 @@ public:
 	}
 
 	string GetDataFromQueue(int iConsumerNumber)
-	{		
+	{	
+ 	    mtx.lock();	
 		if(!m_PrintQueue.empty())
 		{
-			mtx.lock();
-			
 			string data;
 			data = m_PrintQueue.front();
 			m_PrintQueue.pop();
 			cout<<"Consumer Number :"<<iConsumerNumber<<"Data :"<<data<<endl;
-			
-			mtx.unlock();
 		}
+		mtx.unlock();
 
 		return "";
 	}
@@ -62,15 +60,16 @@ void ConsumeData(int iConsumerNumber)
 
 int main() 
 {
-  std::thread Producer_1 (AddData, 100);     
-  std::thread Producer_2 (AddData, 50);     
+  std::thread Producer_1 (AddData, 100);   
+  std::thread Producer_2 (AddData, 120);       
   std::thread Consumer_1 (ConsumeData, 1);  
-
+  std::thread Consumer_2 (ConsumeData, 2);  
 
   // synchronize threads:
-  Producer_1.join();                // pauses until first finishes
-  Producer_2.join(); 
+  Producer_1.join();                // pauses until first finishes 
+  Producer_2.join();
   Consumer_1.join();            
+  Consumer_2.join();
 
   return 0;
 }
