@@ -23,7 +23,7 @@ public:
 		return instance;
 	}
 
-	void AddToQueue(T data)
+	void ProduceData(T data)
 	{
 		m_mtx.lock();
 
@@ -32,66 +32,67 @@ public:
 		m_mtx.unlock();
 	}
 
-	T GetDataFromQueue(int iConsumerNumber)
-	{	
- 	    m_mtx.lock();
- 	    T data;	
-		if(!m_PrintQueue.empty())
-		{		
-			data = m_PrintQueue.front();
-			m_PrintQueue.pop();
-			PerformNonThreadSafeOperations(iConsumerNumber, data);			
-		}
-		m_mtx.unlock();
+	void ConsumeData(const int iConsumerNumber)
+	{
+		while(true)
+		{
+			T data;
 
-		return data;
+			m_mtx.lock();
+
+			if(!m_PrintQueue.empty())
+			{		
+				data = m_PrintQueue.front();
+				m_PrintQueue.pop();
+				PerformNonThreadSafeOperations(data, iConsumerNumber);			
+			}
+
+			m_mtx.unlock();
+			PerformThreadSafeOperations(data, iConsumerNumber);
+		}
 	}
 
-	void PerformNonThreadSafeOperations(int iConsumerNumber, T data)
+	void PerformNonThreadSafeOperations(T &data, const int iConsumerNumber)
 	{
 		cout<<"Consumer Number :"<<iConsumerNumber<<", Data :"<<data<<endl; //cout is not thread safe.
 	}
 
-	void PerformThreadSafeOperations(T data)
+	void PerformThreadSafeOperations(T &data, const int iConsumerNumber)
 	{
 
 	}
 };
 
-template <typename T> void AddData(int n) 
+string GetSeedData()
 {
-	for(int i = 0; i< n; i++)
-	{
-		stringstream ss;
-		ss<<i;
-		T data = ss.str();
-		PrinterQueue<string>::getInstance().AddToQueue(data);
-	}
-		
-}
-
-template <typename T> void ConsumeData(int iConsumerNumber)
-{
-	while(1)
-	{
-		T data = PrinterQueue<string>::getInstance().GetDataFromQueue(iConsumerNumber);
-		
-		PrinterQueue<string>::getInstance().PerformThreadSafeOperations(data);
-	}
+	stringstream ss;
+	ss<<(rand()% 100);
+	string data = ss.str();
+	return data;
 }
 
 int main() 
 {
-  std::thread Producer_1 (AddData<string>, 100);   
-  std::thread Producer_2 (AddData<string>, 120);       
-  std::thread Consumer_1 (ConsumeData<string>, 1);  
-  std::thread Consumer_2 (ConsumeData<string>, 2);  
+	const int NO_CONSUMERS = 10;
+	const int NO_PRODUCERS = 100;
 
-  // synchronize threads:
-  Producer_1.join();                // pauses until first finishes 
-  Producer_2.join();
-  Consumer_1.join();            
-  Consumer_2.join();
+	vector<thread> Consumers;
+	vector<thread> Producers;
 
-  return 0;
+	for(int i = 0; i< NO_CONSUMERS; i++)
+		Consumers.push_back(thread(&PrinterQueue<string>::ConsumeData, &PrinterQueue<string>::getInstance(), i));
+
+	for (int i =0; i < NO_PRODUCERS; i++)
+	{
+		string data = GetSeedData();
+		Producers.push_back(thread(&PrinterQueue<string>::ProduceData, &PrinterQueue<string>::getInstance(), data));
+	}
+
+	for(int i = 0; i < NO_CONSUMERS; i++)
+		Consumers[i].join();
+
+	for(int i = 0; i < NO_PRODUCERS; i++)
+		Producers[i].join();
+
+	return 0;
 }
